@@ -1,0 +1,27 @@
+{
+  "__type__": "cc.SpriteFrame",
+  "content": {
+    "name": "tiles",
+    "texture": "3fyYwIHBdAPog2WRmaQRol",
+    "rect": [
+      0,
+      0,
+      197,
+      32
+    ],
+    "offset": [
+      -61.5,
+      0
+    ],
+    "originalSize": [
+      320,
+      32
+    ],
+    "capInsets": [
+      0,
+      0,
+      0,
+      0
+    ]
+  }
+}
