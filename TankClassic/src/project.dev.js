@@ -55,10 +55,10 @@ window.__require = function e(t, n, r) {
     Object.defineProperty(exports, "__esModule", {
       value: true
     });
-    var Entity_1 = require("./Entity");
     var SoundManager_1 = require("./core/SoundManager");
     var Tank_1 = require("./Tank");
     var EventManager_1 = require("./core/EventManager");
+    var Entity_1 = require("./Entity");
     var _a = cc._decorator, ccclass = _a.ccclass, property = _a.property;
     var Bullet = function(_super) {
       __extends(Bullet, _super);
@@ -70,7 +70,7 @@ window.__require = function e(t, n, r) {
         return _this;
       }
       Bullet.prototype.onBeginContact = function(contact, selfCollider, otherCollider) {
-        if (otherCollider.tag == Entity_1.CollisionTag.Bullet) contact.disabled = true; else if (otherCollider.tag == Entity_1.CollisionTag.Brick) {
+        if (otherCollider.tag == Entity_1.CollisionTag.Bullet) this._owner.collisionTag == Entity_1.CollisionTag.EnemyTank && (contact.disabled = true); else if (otherCollider.tag == Entity_1.CollisionTag.Brick) {
           this.onBulletExplosion();
           otherCollider.node.removeFromParent();
         } else if (otherCollider.tag == Entity_1.CollisionTag.Rock) this.onBulletExplosion(); else if (otherCollider.tag == Entity_1.CollisionTag.Eagle) {
@@ -97,14 +97,13 @@ window.__require = function e(t, n, r) {
         SoundManager_1.default.instance.playEffect("sfx_explosion");
       };
       Bullet.prototype.excute = function(owner) {
-        this.state = Entity_1.TankState.Moving;
+        this.state = Entity_1.EState.Move;
         this._owner = owner;
-        this.speed = 300;
-        this.direction = owner.direction;
-        this.onMove(this.direction);
+        this.speed = 2 * owner.speed;
+        this.dir = owner.dir;
       };
       Bullet.prototype.update = function(dt) {
-        this.rigitBody.linearVelocity = this.velocity;
+        this.updateMove();
       };
       __decorate([ property(cc.Prefab) ], Bullet.prototype, "explosion", void 0);
       __decorate([ property([ cc.SpriteFrame ]) ], Bullet.prototype, "BulletFrames", void 0);
@@ -211,33 +210,57 @@ window.__require = function e(t, n, r) {
     Object.defineProperty(exports, "__esModule", {
       value: true
     });
-    var Entity_1 = require("./Entity");
     var Tank_1 = require("./Tank");
     var Utils_1 = require("./core/Utils");
+    var Entity_1 = require("./Entity");
+    var EventManager_1 = require("./core/EventManager");
     var _a = cc._decorator, ccclass = _a.ccclass, property = _a.property;
     var EnemyTank = function(_super) {
       __extends(EnemyTank, _super);
       function EnemyTank() {
         var _this = null !== _super && _super.apply(this, arguments) || this;
-        _this._shootingDelay = 1;
+        _this.bringItem = false;
         return _this;
       }
       EnemyTank.prototype.start = function() {
         _super.prototype.start.call(this);
-        this.speed = 150;
-        this.onMove(Entity_1.Dir.Down);
+        this.state = Entity_1.EState.Move;
+        this.dir = Entity_1.EDir.Down;
         this.schedule(this.RandomDir, 2);
-        this.schedule(this.onShoot, this._shootingDelay);
+        Utils_1.default.getRandomInt(0, 100) > 90 && (this.bringItem = true);
+      };
+      EnemyTank.prototype.onDamage = function(damage) {
+        _super.prototype.onDamage.call(this, damage);
+        this.bringItem && EventManager_1.default.instance.dispatch("spawn-item", this.node.position);
+      };
+      EnemyTank.prototype.setLevel = function(level) {
+        _super.prototype.setLevel.call(this, level);
+        if (0 == level) {
+          this.speed = 120;
+          this.shootingInterval = 1;
+        } else if (1 == level) {
+          this.speed = 100;
+          this.shootingInterval = 1.2;
+        }
+        this.unschedule(this.onShoot);
+        this.schedule(this.onShoot, this.shootingInterval);
+      };
+      EnemyTank.prototype.onShoot = function() {
+        var _this = this;
+        var currentCanon = this.getCanonNode();
+        var anim = currentCanon.getComponent(cc.Animation);
+        anim.play("enemy_canon" + (this.currentLevel + 1) + "_shoot");
+        anim.once("finished", function() {
+          anim.play("enemy_canon" + (_this.currentLevel + 1) + "_idle");
+        });
+        _super.prototype.onShoot.call(this);
       };
       EnemyTank.prototype.onBeginContact = function(contact, selfCollider, otherCollider) {
         otherCollider.tag == Entity_1.CollisionTag.EnemyTank && (contact.disabled = true);
         this.RandomDir();
       };
       EnemyTank.prototype.RandomDir = function() {
-        this.onMove(Utils_1.default.getRandomInt(Entity_1.Dir.Up, Entity_1.Dir.Right));
-      };
-      EnemyTank.prototype.update = function(dt) {
-        this.rigitBody.linearVelocity = this.velocity;
+        this.dir = Utils_1.default.getRandomInt(Entity_1.EDir.Up, Entity_1.EDir.Right);
       };
       EnemyTank = __decorate([ ccclass ], EnemyTank);
       return EnemyTank;
@@ -247,6 +270,7 @@ window.__require = function e(t, n, r) {
   }, {
     "./Entity": "Entity",
     "./Tank": "Tank",
+    "./core/EventManager": "EventManager",
     "./core/Utils": "Utils"
   } ],
   Entity: [ function(require, module, exports) {
@@ -256,19 +280,19 @@ window.__require = function e(t, n, r) {
       value: true
     });
     var _a = cc._decorator, ccclass = _a.ccclass, property = _a.property;
-    var Dir;
-    (function(Dir) {
-      Dir[Dir["Up"] = 0] = "Up";
-      Dir[Dir["Down"] = 1] = "Down";
-      Dir[Dir["Left"] = 2] = "Left";
-      Dir[Dir["Right"] = 3] = "Right";
-    })(Dir = exports.Dir || (exports.Dir = {}));
-    var TankState;
-    (function(TankState) {
-      TankState[TankState["Idle"] = 0] = "Idle";
-      TankState[TankState["Moving"] = 1] = "Moving";
-      TankState[TankState["Death"] = 2] = "Death";
-    })(TankState = exports.TankState || (exports.TankState = {}));
+    var EState;
+    (function(EState) {
+      EState[EState["Idle"] = 0] = "Idle";
+      EState[EState["Move"] = 1] = "Move";
+      EState[EState["Death"] = 2] = "Death";
+    })(EState = exports.EState || (exports.EState = {}));
+    var EDir;
+    (function(EDir) {
+      EDir[EDir["Up"] = 0] = "Up";
+      EDir[EDir["Down"] = 1] = "Down";
+      EDir[EDir["Left"] = 2] = "Left";
+      EDir[EDir["Right"] = 3] = "Right";
+    })(EDir = exports.EDir || (exports.EDir = {}));
     var CollisionTag;
     (function(CollisionTag) {
       CollisionTag[CollisionTag["Default"] = 0] = "Default";
@@ -278,6 +302,7 @@ window.__require = function e(t, n, r) {
       CollisionTag[CollisionTag["Brick"] = 4] = "Brick";
       CollisionTag[CollisionTag["Rock"] = 5] = "Rock";
       CollisionTag[CollisionTag["Eagle"] = 6] = "Eagle";
+      CollisionTag[CollisionTag["Item"] = 7] = "Item";
     })(CollisionTag = exports.CollisionTag || (exports.CollisionTag = {}));
     var Entity = function(_super) {
       __extends(Entity, _super);
@@ -285,8 +310,8 @@ window.__require = function e(t, n, r) {
         var _this = null !== _super && _super.apply(this, arguments) || this;
         _this.displayNode = null;
         _this.collisionTag = CollisionTag.Default;
-        _this.direction = Dir.Up;
-        _this.state = TankState.Idle;
+        _this.state = EState.Idle;
+        _this.dir = EDir.Up;
         _this.level = 0;
         _this.velocity = cc.Vec2.ZERO;
         _this.rigitBody = null;
@@ -296,37 +321,28 @@ window.__require = function e(t, n, r) {
       Entity.prototype.start = function() {
         this.rigitBody = this.getComponent(cc.RigidBody);
         this.getComponent(cc.PhysicsCollider).tag = this.collisionTag;
-        this.state = TankState.Moving;
       };
-      Entity.prototype.onMove = function(dir) {
-        if (this.state != TankState.Moving) {
-          this.velocity = cc.Vec2.ZERO;
-          return;
-        }
-        this.direction = dir;
-        switch (this.direction) {
-         case Dir.Up:
-          this.velocity = cc.v2(0, this.speed);
-          this.displayNode.scaleY = 1;
-          this.displayNode.rotation = 0;
-          break;
-
-         case Dir.Down:
-          this.velocity = cc.v2(0, -this.speed);
-          this.displayNode.scaleY = -1;
-          this.displayNode.rotation = 0;
-          break;
-
-         case Dir.Left:
+      Entity.prototype.updateMove = function() {
+        this.state == EState.Death || this.state == EState.Idle ? this.velocity = cc.Vec2.ZERO : this.updateDir();
+        this.rigitBody.linearVelocity = this.velocity;
+      };
+      Entity.prototype.updateDir = function() {
+        if (this.dir == EDir.Left) {
           this.velocity = cc.v2(-this.speed, 0);
           this.displayNode.scaleY = 1;
           this.displayNode.rotation = -90;
-          break;
-
-         case Dir.Right:
+        } else if (this.dir == EDir.Right) {
           this.velocity = cc.v2(this.speed, 0);
           this.displayNode.scaleY = 1;
           this.displayNode.rotation = 90;
+        } else if (this.dir == EDir.Up) {
+          this.velocity = cc.v2(0, this.speed);
+          this.displayNode.scaleY = 1;
+          this.displayNode.rotation = 0;
+        } else if (this.dir == EDir.Down) {
+          this.velocity = cc.v2(0, -this.speed);
+          this.displayNode.scaleY = -1;
+          this.displayNode.rotation = 0;
         }
       };
       __decorate([ property(cc.Node) ], Entity.prototype, "displayNode", void 0);
@@ -454,6 +470,8 @@ window.__require = function e(t, n, r) {
     var SoundManager_1 = require("./core/SoundManager");
     var EventManager_1 = require("./core/EventManager");
     var MapInfo_1 = require("./MapInfo");
+    var KeyInput_1 = require("./core/KeyInput");
+    var EnemyTank_1 = require("./EnemyTank");
     var _a = cc._decorator, ccclass = _a.ccclass, property = _a.property;
     var GamePlay = function(_super) {
       __extends(GamePlay, _super);
@@ -466,6 +484,7 @@ window.__require = function e(t, n, r) {
         _this.enemyTankPrefab = null;
         _this.wall = null;
         _this.rock = null;
+        _this.itemPrefab = null;
         _this.lblPlayerLife = null;
         _this.lblEnemyLife = null;
         _this._maxTankAtTheSameTime = 7;
@@ -479,6 +498,7 @@ window.__require = function e(t, n, r) {
       }
       GamePlay.prototype.onLoad = function() {
         var _this = this;
+        KeyInput_1.KeyInput.instance;
         this._life = 3;
         SoundManager_1.default.instance;
         SoundManager_1.default.instance.init();
@@ -492,10 +512,17 @@ window.__require = function e(t, n, r) {
           _this.onTankDeath(tag);
         });
         EventManager_1.default.instance.registerOnce("death-eagle", this.gameOver);
+        EventManager_1.default.instance.register("spawn-item", function(pos) {
+          _this.spawnItem(pos);
+        });
         this.lblPlayerLife.string = this._life.toString();
         this.lblEnemyLife.string = this._numberOfEnemyTank.toString();
       };
+      GamePlay.prototype.update = function(dt) {
+        KeyInput_1.KeyInput.instance.update();
+      };
       GamePlay.prototype.start = function() {
+        KeyInput_1.KeyInput.instance;
         this.schedule(this.spawnEnemyInterval, this._spawnEnemyInterval);
       };
       GamePlay.prototype.gameOver = function() {
@@ -530,6 +557,7 @@ window.__require = function e(t, n, r) {
         this._currentEnemyTankOnScreen++;
         this._numberOfEnemyTank--;
         this.lblEnemyLife.string = this._numberOfEnemyTank.toString();
+        5 == this._currentEnemyTankOnScreen || 10 == this._currentEnemyTankOnScreen || 15 == this._currentEnemyTankOnScreen ? tank.getComponent(EnemyTank_1.default).setLevel(1) : tank.getComponent(EnemyTank_1.default).setLevel(0);
       };
       GamePlay.prototype.loadTmx = function(name) {
         var _this = this;
@@ -598,6 +626,11 @@ window.__require = function e(t, n, r) {
         this._playerTank.parent = parentNode;
         this._playerTank.position = pos;
       };
+      GamePlay.prototype.spawnItem = function(pos) {
+        var item = cc.instantiate(this.itemPrefab);
+        item.parent = this.tmxNode;
+        item.position = pos;
+      };
       __decorate([ property(cc.Node) ], GamePlay.prototype, "mainCam", void 0);
       __decorate([ property(cc.Node) ], GamePlay.prototype, "tmxNode", void 0);
       __decorate([ property(cc.Prefab) ], GamePlay.prototype, "eaglePrefab", void 0);
@@ -605,6 +638,7 @@ window.__require = function e(t, n, r) {
       __decorate([ property(cc.Prefab) ], GamePlay.prototype, "enemyTankPrefab", void 0);
       __decorate([ property(cc.Prefab) ], GamePlay.prototype, "wall", void 0);
       __decorate([ property(cc.Prefab) ], GamePlay.prototype, "rock", void 0);
+      __decorate([ property(cc.Prefab) ], GamePlay.prototype, "itemPrefab", void 0);
       __decorate([ property(cc.Label) ], GamePlay.prototype, "lblPlayerLife", void 0);
       __decorate([ property(cc.Label) ], GamePlay.prototype, "lblEnemyLife", void 0);
       GamePlay = __decorate([ ccclass ], GamePlay);
@@ -614,11 +648,165 @@ window.__require = function e(t, n, r) {
     cc._RF.pop();
   }, {
     "./CameraController": "CameraController",
+    "./EnemyTank": "EnemyTank",
     "./Entity": "Entity",
     "./MapInfo": "MapInfo",
     "./core/EventManager": "EventManager",
+    "./core/KeyInput": "KeyInput",
     "./core/SoundManager": "SoundManager"
   } ],
+  Item: [ function(require, module, exports) {
+    "use strict";
+    cc._RF.push(module, "80b9dock7ZDTbM+m9kAx6pS", "Item");
+    Object.defineProperty(exports, "__esModule", {
+      value: true
+    });
+    var Entity_1 = require("./Entity");
+    var Utils_1 = require("./core/Utils");
+    var EventManager_1 = require("./core/EventManager");
+    var _a = cc._decorator, ccclass = _a.ccclass, property = _a.property;
+    var EItemType;
+    (function(EItemType) {
+      EItemType[EItemType["Star"] = 0] = "Star";
+      EItemType[EItemType["Lock"] = 1] = "Lock";
+      EItemType[EItemType["Life"] = 2] = "Life";
+      EItemType[EItemType["Bomb"] = 3] = "Bomb";
+      EItemType[EItemType["Guard"] = 4] = "Guard";
+      EItemType[EItemType["Shovel"] = 5] = "Shovel";
+    })(EItemType = exports.EItemType || (exports.EItemType = {}));
+    var Item = function(_super) {
+      __extends(Item, _super);
+      function Item() {
+        var _this = null !== _super && _super.apply(this, arguments) || this;
+        _this.SpriteFrames = [];
+        _this.lifeTime = 60;
+        return _this;
+      }
+      Object.defineProperty(Item.prototype, "Type", {
+        get: function() {
+          return this._type;
+        },
+        enumerable: true,
+        configurable: true
+      });
+      Item.prototype.onBeginContact = function(contact, selfCollider, otherCollider) {
+        if (otherCollider.tag == Entity_1.CollisionTag.PlayerTank) {
+          contact.disabled = true;
+          EventManager_1.default.instance.dispatch("collide-with-item", this);
+        }
+      };
+      Item.prototype.start = function() {
+        this._type = Utils_1.default.getRandomInt(0, EItemType.Shovel);
+        this.getComponent(cc.Sprite).spriteFrame = this.SpriteFrames[this._type];
+      };
+      Item.prototype.update = function(dt) {
+        this.lifeTime -= dt;
+        this.lifeTime <= 0 && this.node.removeFromParent();
+      };
+      __decorate([ property([ cc.SpriteFrame ]) ], Item.prototype, "SpriteFrames", void 0);
+      Item = __decorate([ ccclass ], Item);
+      return Item;
+    }(Entity_1.default);
+    exports.default = Item;
+    cc._RF.pop();
+  }, {
+    "./Entity": "Entity",
+    "./core/EventManager": "EventManager",
+    "./core/Utils": "Utils"
+  } ],
+  KeyInput: [ function(require, module, exports) {
+    "use strict";
+    cc._RF.push(module, "780eea1OWxLToRP9QgOzlLW", "KeyInput");
+    Object.defineProperty(exports, "__esModule", {
+      value: true
+    });
+    var GAME_KEY;
+    (function(GAME_KEY) {
+      GAME_KEY[GAME_KEY["NONE"] = 1] = "NONE";
+      GAME_KEY[GAME_KEY["UP"] = 2] = "UP";
+      GAME_KEY[GAME_KEY["DOWN"] = 4] = "DOWN";
+      GAME_KEY[GAME_KEY["LEFT"] = 8] = "LEFT";
+      GAME_KEY[GAME_KEY["RIGHT"] = 16] = "RIGHT";
+      GAME_KEY[GAME_KEY["FIRE"] = 32] = "FIRE";
+    })(GAME_KEY = exports.GAME_KEY || (exports.GAME_KEY = {}));
+    var _a = cc._decorator, ccclass = _a.ccclass, property = _a.property;
+    var KeyInput = function() {
+      function KeyInput() {
+        cc.systemEvent.on(cc.SystemEvent.EventType.KEY_DOWN, this.onKeyDown, this);
+        cc.systemEvent.on(cc.SystemEvent.EventType.KEY_UP, this.onKeyUp, this);
+      }
+      KeyInput_1 = KeyInput;
+      Object.defineProperty(KeyInput, "instance", {
+        get: function() {
+          null == KeyInput_1._instance && (KeyInput_1._instance = new KeyInput_1());
+          return KeyInput_1._instance;
+        },
+        enumerable: true,
+        configurable: true
+      });
+      KeyInput.prototype.onKeyUp = function(event) {
+        this._keysRelease |= this.getKeyMask(event.keyCode);
+      };
+      KeyInput.prototype.onKeyDown = function(event) {
+        var keyMask = this.getKeyMask(event.keyCode);
+        this._keysPress |= keyMask;
+        this._keysRelease &= ~keyMask;
+      };
+      KeyInput.prototype.getKeyMask = function(keyCode) {
+        switch (keyCode) {
+         case cc.macro.KEY.a:
+         case cc.macro.KEY.left:
+         case cc.macro.KEY.num4:
+          return GAME_KEY.LEFT;
+
+         case cc.macro.KEY.d:
+         case cc.macro.KEY.right:
+         case cc.macro.KEY.num6:
+          return GAME_KEY.RIGHT;
+
+         case cc.macro.KEY.w:
+         case cc.macro.KEY.up:
+         case cc.macro.KEY.num8:
+          return GAME_KEY.UP;
+
+         case cc.macro.KEY.s:
+         case cc.macro.KEY.down:
+         case cc.macro.KEY.num2:
+          return GAME_KEY.DOWN;
+
+         case cc.macro.KEY.space:
+          return GAME_KEY.FIRE;
+
+         default:
+          return GAME_KEY.NONE;
+        }
+      };
+      KeyInput.prototype.update = function() {
+        var keysOld = this._keysCurrent;
+        this._keysCurrent &= ~this._keysRelease;
+        this._keysCurrent |= this._keysPress;
+        this._keysRelease &= this._keysPress;
+        this._keysPress = 0;
+        this._keysPressed = this._keysCurrent & ~keysOld;
+        this._keysReleased = keysOld & ~this._keysCurrent;
+      };
+      KeyInput.prototype.isKeyPressed = function(key) {
+        return 0 != (this._keysPressed & key);
+      };
+      KeyInput.prototype.isKeyReleased = function(key) {
+        return 0 != (this._keysReleased & key);
+      };
+      KeyInput.prototype.isKeyHeld = function(key) {
+        return 0 != (this._keysCurrent & key);
+      };
+      var KeyInput_1;
+      KeyInput._instance = null;
+      KeyInput = KeyInput_1 = __decorate([ ccclass ], KeyInput);
+      return KeyInput;
+    }();
+    exports.KeyInput = KeyInput;
+    cc._RF.pop();
+  }, {} ],
   MapInfo: [ function(require, module, exports) {
     "use strict";
     cc._RF.push(module, "a7f51kVq+VGLa+5aRbtBt7D", "MapInfo");
@@ -660,8 +848,11 @@ window.__require = function e(t, n, r) {
     Object.defineProperty(exports, "__esModule", {
       value: true
     });
-    var Entity_1 = require("./Entity");
     var Tank_1 = require("./Tank");
+    var KeyInput_1 = require("./core/KeyInput");
+    var Entity_1 = require("./Entity");
+    var Item_1 = require("./Item");
+    var EventManager_1 = require("./core/EventManager");
     var _a = cc._decorator, ccclass = _a.ccclass, property = _a.property;
     var PlayerTank = function(_super) {
       __extends(PlayerTank, _super);
@@ -669,48 +860,69 @@ window.__require = function e(t, n, r) {
         var _this = null !== _super && _super.apply(this, arguments) || this;
         _this.bornEffect = null;
         _this.keyMask = 0;
+        _this.guardTimer = 0;
         return _this;
       }
       PlayerTank.prototype.start = function() {
+        var _this = this;
+        this.speed = 120;
+        this.shootingInterval = 1;
+        this.guardTimer = 0;
         _super.prototype.start.call(this);
-        cc.systemEvent.on(cc.SystemEvent.EventType.KEY_DOWN, this.onKeyDown, this);
-        cc.systemEvent.on(cc.SystemEvent.EventType.KEY_UP, this.onKeyUp, this);
         this.rigitBody = this.getComponent(cc.RigidBody);
-        this.speed = 150;
         var effect = cc.instantiate(this.bornEffect);
         effect.parent = this.node;
+        this.setLevel(0);
+        EventManager_1.default.instance.register("collide-with-item", function(item) {
+          _this.onCollideWithItem(item);
+        });
       };
-      PlayerTank.prototype.onKeyUp = function(event) {
-        if (event.keyCode == cc.macro.KEY.up || event.keyCode == cc.macro.KEY.down || event.keyCode == cc.macro.KEY.left || event.keyCode == cc.macro.KEY.right) {
-          this.keyMask ^= event.keyCode;
-          0 == this.keyMask && this.onIdle();
+      PlayerTank.prototype.onCollideWithItem = function(item) {
+        var itemType = item.Type;
+        switch (itemType) {
+         case Item_1.EItemType.Star:
+          this.setLevel(this.currentLevel + 1);
+          item.node.removeFromParent();
+          break;
+
+         case Item_1.EItemType.Guard:
+          this.setLevel(this.currentLevel + 1);
+          item.node.removeFromParent();
+          this.guardTimer = 60;
         }
       };
-      PlayerTank.prototype.onKeyDown = function(event) {
-        if (this.isDeath()) return;
-        if (event.keyCode == cc.macro.KEY.up) {
-          this.keyMask |= cc.macro.KEY.up;
-          this.onMove(Entity_1.Dir.Up);
-        } else if (event.keyCode == cc.macro.KEY.down) {
-          this.keyMask |= cc.macro.KEY.down;
-          this.onMove(Entity_1.Dir.Down);
-        } else if (event.keyCode == cc.macro.KEY.left) {
-          this.keyMask |= cc.macro.KEY.left;
-          this.onMove(Entity_1.Dir.Left);
-        } else if (event.keyCode == cc.macro.KEY.right) {
-          this.keyMask |= cc.macro.KEY.right;
-          this.onMove(Entity_1.Dir.Right);
-        } else event.keyCode == cc.macro.KEY.space && this.onShoot();
+      PlayerTank.prototype.onShoot = function() {
+        var _this = this;
+        var currentCanon = this.getCanonNode();
+        var anim = currentCanon.getComponent(cc.Animation);
+        anim.play("player_canon_" + (this.currentLevel + 1) + "_shoot");
+        anim.once("finished", function() {
+          anim.play("player_canon_" + (_this.currentLevel + 1) + "_idle");
+        });
+        _super.prototype.onShoot.call(this);
       };
-      PlayerTank.prototype.onIdle = function() {
-        this.velocity = cc.Vec2.ZERO;
+      PlayerTank.prototype.updateGuardTimer = function(dt) {
+        if (this.guardTimer <= 0) return;
+        this.guardTimer -= dt;
       };
       PlayerTank.prototype.update = function(dt) {
-        this.rigitBody.linearVelocity = this.velocity;
-      };
-      PlayerTank.prototype.onDestroy = function() {
-        this.node.off(cc.SystemEvent.EventType.KEY_DOWN, this.onKeyDown);
-        this.node.off(cc.SystemEvent.EventType.KEY_UP, this.onKeyUp);
+        this.state = Entity_1.EState.Idle;
+        if (KeyInput_1.KeyInput.instance.isKeyPressed(KeyInput_1.GAME_KEY.LEFT) || KeyInput_1.KeyInput.instance.isKeyHeld(KeyInput_1.GAME_KEY.LEFT)) {
+          this.state = Entity_1.EState.Move;
+          this.dir = Entity_1.EDir.Left;
+        } else if (KeyInput_1.KeyInput.instance.isKeyPressed(KeyInput_1.GAME_KEY.RIGHT) || KeyInput_1.KeyInput.instance.isKeyHeld(KeyInput_1.GAME_KEY.RIGHT)) {
+          this.state = Entity_1.EState.Move;
+          this.dir = Entity_1.EDir.Right;
+        } else if (KeyInput_1.KeyInput.instance.isKeyPressed(KeyInput_1.GAME_KEY.UP) || KeyInput_1.KeyInput.instance.isKeyHeld(KeyInput_1.GAME_KEY.UP)) {
+          this.state = Entity_1.EState.Move;
+          this.dir = Entity_1.EDir.Up;
+        } else if (KeyInput_1.KeyInput.instance.isKeyPressed(KeyInput_1.GAME_KEY.DOWN) || KeyInput_1.KeyInput.instance.isKeyHeld(KeyInput_1.GAME_KEY.DOWN)) {
+          this.state = Entity_1.EState.Move;
+          this.dir = Entity_1.EDir.Down;
+        }
+        _super.prototype.update.call(this, dt);
+        KeyInput_1.KeyInput.instance.isKeyPressed(KeyInput_1.GAME_KEY.FIRE) && this.onShoot();
+        this.updateGuardTimer(dt);
       };
       __decorate([ property(cc.Prefab) ], PlayerTank.prototype, "bornEffect", void 0);
       PlayerTank = __decorate([ ccclass ], PlayerTank);
@@ -720,7 +932,10 @@ window.__require = function e(t, n, r) {
     cc._RF.pop();
   }, {
     "./Entity": "Entity",
-    "./Tank": "Tank"
+    "./Item": "Item",
+    "./Tank": "Tank",
+    "./core/EventManager": "EventManager",
+    "./core/KeyInput": "KeyInput"
   } ],
   SoundManager: [ function(require, module, exports) {
     "use strict";
@@ -864,10 +1079,10 @@ window.__require = function e(t, n, r) {
     Object.defineProperty(exports, "__esModule", {
       value: true
     });
-    var Entity_1 = require("./Entity");
     var Bullet_1 = require("./Bullet");
     var SoundManager_1 = require("./core/SoundManager");
     var EventManager_1 = require("./core/EventManager");
+    var Entity_1 = require("./Entity");
     var _a = cc._decorator, ccclass = _a.ccclass, property = _a.property;
     var Tank = function(_super) {
       __extends(Tank, _super);
@@ -875,26 +1090,47 @@ window.__require = function e(t, n, r) {
         var _this = null !== _super && _super.apply(this, arguments) || this;
         _this.bulletStartPos = null;
         _this.bulletPrefab = null;
+        _this.canonLevels = [];
         _this.shootingInterval = .5;
         _this._canShoot = true;
         _this._HP = 1;
+        _this.currentLevel = 0;
         return _this;
       }
       Tank.prototype.start = function() {
         _super.prototype.start.call(this);
         this.schedule(this.canShoot, this.shootingInterval);
       };
+      Tank.prototype.update = function(dt) {
+        this.updateMove();
+      };
+      Tank.prototype.setLevel = function(level) {
+        level > 2 && (level = 2);
+        this.currentLevel = level;
+        for (var i = 0; i < this.canonLevels.length; i++) this.canonLevels[i].active = i == level;
+      };
       Tank.prototype.onShoot = function() {
         if (!this._canShoot) return;
-        var bullet = cc.instantiate(this.bulletPrefab);
-        bullet.parent = this.node.parent;
-        bullet.position = this.node.parent.convertToNodeSpaceAR(this.bulletStartPos.parent.convertToWorldSpaceAR(this.bulletStartPos.position));
-        bullet.getComponent(Bullet_1.default).excute(this);
+        if (2 == this.currentLevel) {
+          var p1 = void 0;
+          var p2 = void 0;
+          var offset = 7;
+          p1 = cc.v2(this.bulletStartPos.position.x - offset, this.bulletStartPos.position.y);
+          p2 = cc.v2(this.bulletStartPos.position.x + offset, this.bulletStartPos.position.y);
+          this.spawnBullet(p1);
+          this.spawnBullet(p2);
+        } else this.spawnBullet(this.bulletStartPos.position);
         SoundManager_1.default.instance.playEffect("fire");
         this._canShoot = false;
       };
+      Tank.prototype.spawnBullet = function(position) {
+        var bullet = cc.instantiate(this.bulletPrefab);
+        bullet.parent = this.node.parent;
+        bullet.position = this.node.parent.convertToNodeSpaceAR(this.bulletStartPos.parent.convertToWorldSpaceAR(position));
+        bullet.getComponent(Bullet_1.default).excute(this);
+      };
       Tank.prototype.canShoot = function() {
-        this.state != Entity_1.TankState.Death && (this._canShoot = true);
+        this.state != Entity_1.EState.Death && (this._canShoot = true);
       };
       Tank.prototype.onDestroy = function() {
         this.unschedule(this.canShoot);
@@ -903,7 +1139,7 @@ window.__require = function e(t, n, r) {
         var _this = this;
         this._HP -= damage;
         if (this._HP <= 0) {
-          this.state = Entity_1.TankState.Death;
+          this.state = Entity_1.EState.Death;
           EventManager_1.default.instance.dispatch("tank-death", this.collisionTag);
           if (this.collisionTag == Entity_1.CollisionTag.EnemyTank) {
             this.node.removeComponent(cc.PhysicsCircleCollider);
@@ -913,11 +1149,15 @@ window.__require = function e(t, n, r) {
           }
         }
       };
+      Tank.prototype.getCanonNode = function() {
+        return this.canonLevels[this.currentLevel];
+      };
       Tank.prototype.isDeath = function() {
         return this._HP <= 0;
       };
       __decorate([ property(cc.Node) ], Tank.prototype, "bulletStartPos", void 0);
       __decorate([ property(cc.Prefab) ], Tank.prototype, "bulletPrefab", void 0);
+      __decorate([ property([ cc.Node ]) ], Tank.prototype, "canonLevels", void 0);
       Tank = __decorate([ ccclass ], Tank);
       return Tank;
     }(Entity_1.default);
@@ -950,4 +1190,4 @@ window.__require = function e(t, n, r) {
     exports.default = Utils;
     cc._RF.pop();
   }, {} ]
-}, {}, [ "BornEffect", "Bullet", "CameraController", "EndScreen", "EnemyTank", "Entity", "GamePlay", "MapInfo", "PlayerTank", "Tank", "EventManager", "SoundManager", "Utils" ]);
+}, {}, [ "BornEffect", "Bullet", "CameraController", "EndScreen", "EnemyTank", "Entity", "GamePlay", "Item", "MapInfo", "PlayerTank", "Tank", "EventManager", "KeyInput", "SoundManager", "Utils" ]);
