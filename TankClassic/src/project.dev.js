@@ -214,20 +214,31 @@ window.__require = function e(t, n, r) {
     var Utils_1 = require("./core/Utils");
     var Entity_1 = require("./Entity");
     var EventManager_1 = require("./core/EventManager");
+    var Item_1 = require("./Item");
     var _a = cc._decorator, ccclass = _a.ccclass, property = _a.property;
     var EnemyTank = function(_super) {
       __extends(EnemyTank, _super);
       function EnemyTank() {
         var _this = null !== _super && _super.apply(this, arguments) || this;
         _this.bringItem = false;
+        _this._isLocked = false;
         return _this;
       }
       EnemyTank.prototype.start = function() {
+        var _this = this;
         _super.prototype.start.call(this);
         this.state = Entity_1.EState.Move;
         this.dir = Entity_1.EDir.Down;
         this.schedule(this.RandomDir, 2);
         Utils_1.default.getRandomInt(0, 100) > 90 && (this.bringItem = true);
+        EventManager_1.default.instance.register("player-eat-item", function(itemType) {
+          if (itemType == Item_1.EItemType.Bomb) _this.onDamage(1); else if (itemType == Item_1.EItemType.Lock) {
+            _this._isLocked = true;
+            _this.node.runAction(cc.sequence(cc.delayTime(1), cc.callFunc(function() {
+              _this._isLocked = false;
+            })));
+          }
+        });
       };
       EnemyTank.prototype.onDamage = function(damage) {
         _super.prototype.onDamage.call(this, damage);
@@ -269,6 +280,7 @@ window.__require = function e(t, n, r) {
     cc._RF.pop();
   }, {
     "./Entity": "Entity",
+    "./Item": "Item",
     "./Tank": "Tank",
     "./core/EventManager": "EventManager",
     "./core/Utils": "Utils"
@@ -472,6 +484,7 @@ window.__require = function e(t, n, r) {
     var MapInfo_1 = require("./MapInfo");
     var KeyInput_1 = require("./core/KeyInput");
     var EnemyTank_1 = require("./EnemyTank");
+    var Item_1 = require("./Item");
     var _a = cc._decorator, ccclass = _a.ccclass, property = _a.property;
     var GamePlay = function(_super) {
       __extends(GamePlay, _super);
@@ -493,6 +506,7 @@ window.__require = function e(t, n, r) {
         _this._playerTank = null;
         _this._mapInfo = null;
         _this._spawnEnemyInterval = 3;
+        _this._eagleHouse = [];
         _this._life = 3;
         return _this;
       }
@@ -522,8 +536,15 @@ window.__require = function e(t, n, r) {
         KeyInput_1.KeyInput.instance.update();
       };
       GamePlay.prototype.start = function() {
+        var _this = this;
         KeyInput_1.KeyInput.instance;
         this.schedule(this.spawnEnemyInterval, this._spawnEnemyInterval);
+        EventManager_1.default.instance.register("player-eat-item", function(itemType) {
+          itemType == Item_1.EItemType.Life ? _this._life += 1 : itemType == Item_1.EItemType.Shovel;
+        });
+      };
+      GamePlay.prototype.onHShvelChange = function(isShovel) {
+        this._eagleHouse.forEach(function(wall) {});
       };
       GamePlay.prototype.gameOver = function() {
         EventManager_1.default.instance.dispatch("show-end-screen");
@@ -603,6 +624,12 @@ window.__require = function e(t, n, r) {
           rock.parent = this.tmxNode;
           var pos = tileLayer.getPositionAt(h, w);
           rock.position = cc.v2(pos.x - this._mapPixelSize.width * tileLayer.node.anchorX + .5 * rock.width, pos.y - this._mapPixelSize.height * tileLayer.node.anchorY + .5 * rock.height);
+        } else if (7 == tileLayer.getTileGIDAt(h, w)) {
+          var wall = cc.instantiate(this.wall);
+          wall.parent = this.tmxNode;
+          var pos = tileLayer.getPositionAt(h, w);
+          wall.position = cc.v2(pos.x - this._mapPixelSize.width * tileLayer.node.anchorX + .5 * wall.width, pos.y - this._mapPixelSize.height * tileLayer.node.anchorY + .5 * wall.height);
+          this._eagleHouse.push(wall);
         }
         tileLayer.setTileSet(0);
       };
@@ -650,11 +677,33 @@ window.__require = function e(t, n, r) {
     "./CameraController": "CameraController",
     "./EnemyTank": "EnemyTank",
     "./Entity": "Entity",
+    "./Item": "Item",
     "./MapInfo": "MapInfo",
     "./core/EventManager": "EventManager",
     "./core/KeyInput": "KeyInput",
     "./core/SoundManager": "SoundManager"
   } ],
+  GuardEffect: [ function(require, module, exports) {
+    "use strict";
+    cc._RF.push(module, "2ac63TVzYJIp68QNy02H3lk", "GuardEffect");
+    Object.defineProperty(exports, "__esModule", {
+      value: true
+    });
+    var _a = cc._decorator, ccclass = _a.ccclass, property = _a.property;
+    var GuardEffect = function(_super) {
+      __extends(GuardEffect, _super);
+      function GuardEffect() {
+        return null !== _super && _super.apply(this, arguments) || this;
+      }
+      GuardEffect.prototype.start = function() {
+        this.node.runAction(cc.repeatForever(cc.rotateBy(2, 360)));
+      };
+      GuardEffect = __decorate([ ccclass ], GuardEffect);
+      return GuardEffect;
+    }(cc.Component);
+    exports.default = GuardEffect;
+    cc._RF.pop();
+  }, {} ],
   Item: [ function(require, module, exports) {
     "use strict";
     cc._RF.push(module, "80b9dock7ZDTbM+m9kAx6pS", "Item");
@@ -859,8 +908,10 @@ window.__require = function e(t, n, r) {
       function PlayerTank() {
         var _this = null !== _super && _super.apply(this, arguments) || this;
         _this.bornEffect = null;
+        _this.prefabGuradEffect = null;
         _this.keyMask = 0;
         _this.guardTimer = 0;
+        _this.guardEffect = null;
         return _this;
       }
       PlayerTank.prototype.start = function() {
@@ -886,9 +937,30 @@ window.__require = function e(t, n, r) {
           break;
 
          case Item_1.EItemType.Guard:
-          this.setLevel(this.currentLevel + 1);
           item.node.removeFromParent();
           this.guardTimer = 60;
+          if (null == this.guardTimer) {
+            this.guardEffect = cc.instantiate(this.prefabGuradEffect);
+            this.guardEffect.parent = this.node;
+            this.guardEffect.position = cc.Vec2.ZERO;
+          }
+          break;
+
+         case Item_1.EItemType.Life:
+          EventManager_1.default.instance.dispatch("player-eat-item", itemType);
+          item.node.removeFromParent();
+
+         case Item_1.EItemType.Bomb:
+          EventManager_1.default.instance.dispatch("player-eat-item", itemType);
+          item.node.removeFromParent();
+
+         case Item_1.EItemType.Lock:
+          EventManager_1.default.instance.dispatch("player-eat-item", itemType);
+          item.node.removeFromParent();
+
+         case Item_1.EItemType.Shovel:
+          EventManager_1.default.instance.dispatch("player-eat-item", itemType);
+          item.node.removeFromParent();
         }
       };
       PlayerTank.prototype.onShoot = function() {
@@ -902,7 +974,10 @@ window.__require = function e(t, n, r) {
         _super.prototype.onShoot.call(this);
       };
       PlayerTank.prototype.updateGuardTimer = function(dt) {
-        if (this.guardTimer <= 0) return;
+        if (this.guardTimer <= 0) {
+          null != this.guardEffect && this.guardEffect.removeFromParent();
+          return;
+        }
         this.guardTimer -= dt;
       };
       PlayerTank.prototype.update = function(dt) {
@@ -925,6 +1000,7 @@ window.__require = function e(t, n, r) {
         this.updateGuardTimer(dt);
       };
       __decorate([ property(cc.Prefab) ], PlayerTank.prototype, "bornEffect", void 0);
+      __decorate([ property(cc.Prefab) ], PlayerTank.prototype, "prefabGuradEffect", void 0);
       PlayerTank = __decorate([ ccclass ], PlayerTank);
       return PlayerTank;
     }(Tank_1.default);
@@ -1190,4 +1266,4 @@ window.__require = function e(t, n, r) {
     exports.default = Utils;
     cc._RF.pop();
   }, {} ]
-}, {}, [ "BornEffect", "Bullet", "CameraController", "EndScreen", "EnemyTank", "Entity", "GamePlay", "Item", "MapInfo", "PlayerTank", "Tank", "EventManager", "KeyInput", "SoundManager", "Utils" ]);
+}, {}, [ "BornEffect", "Bullet", "CameraController", "EndScreen", "EnemyTank", "Entity", "GamePlay", "GuardEffect", "Item", "MapInfo", "PlayerTank", "Tank", "EventManager", "KeyInput", "SoundManager", "Utils" ]);
