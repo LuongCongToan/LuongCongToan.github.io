@@ -1,0 +1,209 @@
+[
+  [
+    {
+      "__type__": "cc.Prefab",
+      "_name": "chain",
+      "data": {
+        "__id__": 1
+      }
+    },
+    {
+      "__type__": "cc.Node",
+      "_name": "chain",
+      "_level": 1,
+      "_components": [
+        {
+          "__type__": "cc.Sprite",
+          "node": {
+            "__id__": 1
+          },
+          "_spriteFrame": {
+            "__uuid__": "f7ZzFhvb5DdbkKoCoYhv9d"
+          }
+        },
+        {
+          "__type__": "cc.RigidBody",
+          "node": {
+            "__id__": 1
+          },
+          "_gravityScale": 10,
+          "_linearDamping": 1,
+          "_angularDamping": 10,
+          "enabledContactListener": true
+        },
+        {
+          "__type__": "cc.RevoluteJoint",
+          "node": {
+            "__id__": 1
+          },
+          "connectedAnchor": {
+            "__type__": "cc.Vec2",
+            "y": 10
+          },
+          "_enableLimit": true,
+          "_enableMotor": true,
+          "upperAngle": 360
+        },
+        {
+          "__type__": "cc.PhysicsCircleCollider",
+          "node": {
+            "__id__": 1
+          },
+          "_sensor": true,
+          "_friction": 0,
+          "_radius": 5
+        },
+        {
+          "__type__": "877eaIlmU1AqIXPM7PlRf+X",
+          "node": {
+            "__id__": 1
+          }
+        }
+      ],
+      "_prefab": {
+        "__type__": "cc.PrefabInfo",
+        "root": {
+          "__id__": 1
+        },
+        "asset": {
+          "__uuid__": "05AJ8p9ilDoJQd90jW8WVo"
+        },
+        "fileId": "03pO2yvINHDZ00WWMvhrDy"
+      },
+      "_contentSize": {
+        "__type__": "cc.Size",
+        "width": 11,
+        "height": 10
+      },
+      "_position": {
+        "__type__": "cc.Vec3",
+        "x": -268.9,
+        "y": -40.6
+      },
+      "_scale": {
+        "__type__": "cc.Vec3",
+        "x": 1,
+        "y": 1,
+        "z": 1
+      }
+    }
+  ],
+  [
+    {
+      "__type__": "cc.Prefab",
+      "_name": "chainBegin",
+      "data": {
+        "__id__": 1
+      }
+    },
+    {
+      "__type__": "cc.Node",
+      "_name": "chainBegin",
+      "_level": 2,
+      "_components": [
+        {
+          "__type__": "cc.Sprite",
+          "node": {
+            "__id__": 1
+          },
+          "_spriteFrame": {
+            "__uuid__": "fecjsSNuFBXY9j9+Pm2EIH"
+          }
+        },
+        {
+          "__type__": "cc.RigidBody",
+          "node": {
+            "__id__": 1
+          },
+          "_type": 0,
+          "_gravityScale": 10,
+          "_linearDamping": 1,
+          "_angularDamping": 10
+        },
+        {
+          "__type__": "cc.RevoluteJoint",
+          "node": {
+            "__id__": 1
+          }
+        }
+      ],
+      "_prefab": {
+        "__type__": "cc.PrefabInfo",
+        "root": {
+          "__id__": 1
+        },
+        "asset": {
+          "__uuid__": "c9ilowGMlAAZd6HDJ+HcF1"
+        },
+        "fileId": "48Z32PPbZAiZIRoERIHgHI"
+      },
+      "_contentSize": {
+        "__type__": "cc.Size",
+        "width": 30,
+        "height": 29
+      },
+      "_scale": {
+        "__type__": "cc.Vec3",
+        "x": 1,
+        "y": 1,
+        "z": 1
+      }
+    }
+  ],
+  {
+    "__type__": "cc.SpriteFrame",
+    "content": {
+      "name": "barrier_1",
+      "texture": "1799c2037",
+      "rect": [
+        158,
+        1007,
+        11,
+        10
+      ],
+      "offset": [
+        0,
+        0
+      ],
+      "originalSize": [
+        11,
+        10
+      ],
+      "rotated": 1,
+      "capInsets": [
+        0,
+        0,
+        0,
+        0
+      ]
+    }
+  },
+  {
+    "__type__": "cc.SpriteFrame",
+    "content": {
+      "name": "barrier_0",
+      "texture": "1799c2037",
+      "rect": [
+        422,
+        836,
+        30,
+        29
+      ],
+      "offset": [
+        0,
+        0
+      ],
+      "originalSize": [
+        30,
+        29
+      ],
+      "rotated": 1,
+      "capInsets": [
+        0,
+        0,
+        0,
+        0
+      ]
+    }
+  }
+]

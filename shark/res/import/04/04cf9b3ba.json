@@ -1,0 +1,104 @@
+[
+  {
+    "__type__": "cc.SpriteFrame",
+    "content": {
+      "name": "coin",
+      "texture": "1799c2037",
+      "rect": [
+        272,
+        752,
+        48,
+        48
+      ],
+      "offset": [
+        0,
+        0
+      ],
+      "originalSize": [
+        48,
+        48
+      ],
+      "capInsets": [
+        0,
+        0,
+        0,
+        0
+      ]
+    }
+  },
+  [
+    {
+      "__type__": "cc.Prefab",
+      "_name": "coin",
+      "data": {
+        "__id__": 1
+      }
+    },
+    {
+      "__type__": "cc.Node",
+      "_name": "coin",
+      "_level": 1,
+      "_components": [
+        {
+          "__type__": "cc.Sprite",
+          "node": {
+            "__id__": 1
+          },
+          "_spriteFrame": {
+            "__uuid__": "93eAuK0GxBG4jLPvn9/uqm"
+          }
+        },
+        {
+          "__type__": "cc.RigidBody",
+          "node": {
+            "__id__": 1
+          },
+          "_type": 0,
+          "_gravityScale": 0,
+          "enabledContactListener": true
+        },
+        {
+          "__type__": "cc.PhysicsCircleCollider",
+          "node": {
+            "__id__": 1
+          },
+          "_density": 0,
+          "_sensor": true,
+          "_friction": 0,
+          "_radius": 60
+        },
+        {
+          "__type__": "b0944hmIO5A9amHEOZKl7B4",
+          "node": {
+            "__id__": 1
+          }
+        }
+      ],
+      "_prefab": {
+        "__type__": "cc.PrefabInfo",
+        "root": {
+          "__id__": 1
+        },
+        "asset": {
+          "__uuid__": "f3T7vsGqdGlYggBlHzIi8p"
+        },
+        "fileId": "03FCvRJGRBNKXPH7aM2Po+"
+      },
+      "_contentSize": {
+        "__type__": "cc.Size",
+        "width": 48,
+        "height": 48
+      },
+      "_position": {
+        "__type__": "cc.Vec3",
+        "y": 495
+      },
+      "_scale": {
+        "__type__": "cc.Vec3",
+        "x": 1,
+        "y": 1,
+        "z": 1
+      }
+    }
+  ]
+]
