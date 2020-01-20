@@ -1,0 +1,206 @@
+[
+  {
+    "__type__": "cc.SpriteFrame",
+    "content": {
+      "name": "greenblock",
+      "texture": "1799c2037",
+      "rect": [
+        388,
+        941,
+        79,
+        72
+      ],
+      "offset": [
+        0,
+        0
+      ],
+      "originalSize": [
+        79,
+        72
+      ],
+      "rotated": 1,
+      "capInsets": [
+        18,
+        18,
+        19,
+        36
+      ]
+    }
+  },
+  [
+    {
+      "__type__": "cc.Prefab",
+      "_name": "RopeCanCut",
+      "data": {
+        "__id__": 1
+      }
+    },
+    {
+      "__type__": "cc.Node",
+      "_name": "RopeCanCut",
+      "_children": [
+        {
+          "__id__": 2
+        },
+        {
+          "__id__": 3
+        }
+      ],
+      "_level": 1,
+      "_components": [
+        {
+          "__type__": "53a310KVdJP0abceCWPqNYl",
+          "node": {
+            "__id__": 1
+          },
+          "beginChainPrefab": {
+            "__uuid__": "c9ilowGMlAAZd6HDJ+HcF1"
+          },
+          "endPositionMask": {
+            "__id__": 2
+          },
+          "chainPrefab": {
+            "__uuid__": "05AJ8p9ilDoJQd90jW8WVo"
+          },
+          "entity": {
+            "__id__": 3
+          },
+          "canCut": true
+        }
+      ],
+      "_prefab": {
+        "__type__": "cc.PrefabInfo",
+        "root": {
+          "__id__": 1
+        },
+        "asset": {
+          "__uuid__": "dakjD99NRB+K3US2snChb3"
+        },
+        "fileId": "64Ag50YllOk5Cjaz8pTUwt"
+      },
+      "_position": {
+        "__type__": "cc.Vec3",
+        "x": -184,
+        "y": 394
+      },
+      "_scale": {
+        "__type__": "cc.Vec3",
+        "x": 1,
+        "y": 1,
+        "z": 1
+      }
+    },
+    {
+      "__type__": "cc.Node",
+      "_name": "EndMask",
+      "_parent": {
+        "__id__": 1
+      },
+      "_level": 2,
+      "_prefab": {
+        "__type__": "cc.PrefabInfo",
+        "root": {
+          "__id__": 1
+        },
+        "asset": {
+          "__uuid__": "dakjD99NRB+K3US2snChb3"
+        },
+        "fileId": "79FSB0ZMZEWJvDjNtspaOc"
+      },
+      "_position": {
+        "__type__": "cc.Vec3",
+        "y": -185.2
+      },
+      "_scale": {
+        "__type__": "cc.Vec3",
+        "x": 1,
+        "y": 1,
+        "z": 1
+      }
+    },
+    {
+      "__type__": "cc.Node",
+      "_name": "greenblock",
+      "_parent": {
+        "__id__": 1
+      },
+      "_level": 2,
+      "_components": [
+        {
+          "__type__": "cc.Sprite",
+          "node": {
+            "__id__": 3
+          },
+          "_spriteFrame": {
+            "__uuid__": "6fIgauylZB+IGHtSpHBvjC"
+          },
+          "_type": 1,
+          "_sizeMode": 0,
+          "_isTrimmedMode": false
+        },
+        {
+          "__type__": "cc.RigidBody",
+          "node": {
+            "__id__": 3
+          },
+          "_gravityScale": 10,
+          "_linearDamping": 1.5,
+          "_angularDamping": 0.5
+        },
+        {
+          "__type__": "cc.PhysicsBoxCollider",
+          "node": {
+            "__id__": 3
+          },
+          "_density": 0.5,
+          "_offset": {
+            "__type__": "cc.Vec2",
+            "y": 3
+          },
+          "_size": {
+            "__type__": "cc.Size",
+            "width": 80,
+            "height": 80
+          }
+        },
+        {
+          "__type__": "bf8c9f5laxAmqZkZGL1xj5L",
+          "node": {
+            "__id__": 3
+          }
+        },
+        {
+          "__type__": "cc.RevoluteJoint",
+          "node": {
+            "__id__": 3
+          }
+        }
+      ],
+      "_prefab": {
+        "__type__": "cc.PrefabInfo",
+        "root": {
+          "__id__": 1
+        },
+        "asset": {
+          "__uuid__": "dakjD99NRB+K3US2snChb3"
+        },
+        "fileId": "e6AavaLCJAy4D65ZjRl3rE"
+      },
+      "_contentSize": {
+        "__type__": "cc.Size",
+        "width": 80,
+        "height": 80
+      },
+      "_position": {
+        "__type__": "cc.Vec3",
+        "y": -225
+      },
+      "_scale": {
+        "__type__": "cc.Vec3",
+        "x": 1,
+        "y": 1,
+        "z": 1
+      }
+    }
+  ]
+]
