@@ -142,7 +142,7 @@ console.log('=============lcton======');
     // jsList
     var jsList = settings.jsList;
 
-    var bundledScript = settings.debug ? 'src/project.dev.js' : 'src/project.4e59c.js';
+    var bundledScript = settings.debug ? 'src/project.dev.js' : 'src/project.8c03b.js';
     if (jsList) {
         jsList = jsList.map(function (x) {
             return 'src/' + x;
