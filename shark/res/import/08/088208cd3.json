@@ -1,0 +1,108 @@
+[
+  [
+    {
+      "__type__": "cc.Prefab",
+      "_name": "dynsponge",
+      "data": {
+        "__id__": 1
+      }
+    },
+    {
+      "__type__": "cc.Node",
+      "_name": "dynsponge",
+      "_level": 1,
+      "_components": [
+        {
+          "__type__": "cc.Sprite",
+          "node": {
+            "__id__": 1
+          },
+          "_spriteFrame": {
+            "__uuid__": "8bim78dkdNsJmLtPoxmT4m"
+          }
+        },
+        {
+          "__type__": "cc.RigidBody",
+          "node": {
+            "__id__": 1
+          },
+          "_type": 0,
+          "_gravityScale": 10,
+          "_linearDamping": 1.5,
+          "enabledContactListener": true
+        },
+        {
+          "__type__": "cc.PhysicsBoxCollider",
+          "node": {
+            "__id__": 1
+          },
+          "_friction": 1,
+          "_size": {
+            "__type__": "cc.Size",
+            "width": 256,
+            "height": 256
+          }
+        },
+        {
+          "__type__": "6f640Yu+A1CYZPrlrOqmpPC",
+          "node": {
+            "__id__": 1
+          }
+        }
+      ],
+      "_prefab": {
+        "__type__": "cc.PrefabInfo",
+        "root": {
+          "__id__": 1
+        },
+        "asset": {
+          "__id__": 0
+        },
+        "fileId": "52W442wAhMxZ14inHey6Jl"
+      },
+      "_contentSize": {
+        "__type__": "cc.Size",
+        "width": 256,
+        "height": 256
+      },
+      "_position": {
+        "__type__": "cc.Vec3",
+        "x": 324,
+        "y": -1
+      },
+      "_scale": {
+        "__type__": "cc.Vec3",
+        "x": 0.4,
+        "y": 0.4,
+        "z": 1
+      }
+    }
+  ],
+  {
+    "__type__": "cc.SpriteFrame",
+    "content": {
+      "name": "texture_sponge_orange",
+      "texture": "1799c2037",
+      "rect": [
+        3,
+        3,
+        256,
+        256
+      ],
+      "offset": [
+        0,
+        0
+      ],
+      "originalSize": [
+        256,
+        256
+      ],
+      "capInsets": [
+        0,
+        0,
+        0,
+        0
+      ]
+    }
+  }
+]
