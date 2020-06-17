@@ -1,5 +1,4 @@
 window.boot = function () {
-console.log('=============lcton======');
     var settings = window._CCSettings;
     window._CCSettings = undefined;
 
@@ -136,13 +135,13 @@ console.log('=============lcton======');
 
         // load scene
         loadScene(launchScene);
-		console.log('=============lcton======');
+
     };
 
     // jsList
     var jsList = settings.jsList;
 
-    var bundledScript = settings.debug ? 'src/project.dev.js' : 'src/project.8adb4.js';
+    var bundledScript = settings.debug ? 'src/project.dev.js' : 'src/project.52a7f.js';
     if (jsList) {
         jsList = jsList.map(function (x) {
             return 'src/' + x;
@@ -180,7 +179,7 @@ console.log('=============lcton======');
 if (window.jsb) {
     var isRuntime = (typeof loadRuntime === 'function');
     if (isRuntime) {
-        require('src/settings.bd399.js');
+        require('src/settings.eac28.js');
         require('src/cocos2d-runtime.js');
         if (CC_PHYSICS_BUILTIN || CC_PHYSICS_CANNON) {
             require('src/physics.js');
@@ -188,7 +187,7 @@ if (window.jsb) {
         require('jsb-adapter/engine/index.js');
     }
     else {
-        require('src/settings.bd399.js');
+        require('src/settings.eac28.js');
         require('src/cocos2d-jsb.js');
         if (CC_PHYSICS_BUILTIN || CC_PHYSICS_CANNON) {
             require('src/physics.js');
